@@ -67,7 +67,7 @@ if __name__ == "__main__":
     train_data, train_labels = _load_training_data(args.train)
     eval_data, eval_labels = _load_testing_data(args.train)
     
-    mobile_classifier = model(train_data,train_labels,eval_data,eval_labels, params=None)
+    mobile_classifier = model(train_data,train_labels,eval_data,eval_labels)
 
     if args.current_host == args.hosts[0]:
         # save model to an S3 directory with version number '00000001'
