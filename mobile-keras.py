@@ -23,7 +23,7 @@ def model(x_train, y_train, x_test, y_test,  epochs=8, batch_size=512, base_lear
         model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
                               loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                               metrics=['accuracy'])
-    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size)
+    model.fit(x_train, y_train, validation_data=(x_test,y_test), epochs=epochs, batch_size=batch_size)
     #model.evaluate(x_test, y_test)
     return model
 
@@ -52,6 +52,9 @@ def _parse_args():
     # Data, model, and output directories
     # model_dir is always passed in from SageMaker. By default this is a S3 path under the default bucket.
     parser.add_argument('--model_dir', type=str)
+    parser.add_argument('--epochs', type=int, default=2)
+    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--lr', type=float, default=.0001)
     parser.add_argument('--sm-model-dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
     parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAINING'))
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ.get('SM_HOSTS')))
@@ -66,7 +69,8 @@ if __name__ == "__main__":
     train_data, train_labels = _load_training_data(args.train)
     eval_data, eval_labels = _load_testing_data(args.train)
     
-    mobile_classifier = model(train_data,train_labels,eval_data,eval_labels)
+    mobile_classifier = model(train_data,train_labels,eval_data,eval_labels, epochs=args.epochs, batch_size=args.batch_size,
+                             base_learning_rate=args.lr)
 
     if args.current_host == args.hosts[0]:
         # save model to an S3 directory with version number '00000001'
