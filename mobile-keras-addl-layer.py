@@ -18,7 +18,7 @@ def model(x_train, y_train, x_test, y_test,  epochs=4, batch_size=512, base_lear
         model = tf.keras.Sequential([
                       base_model,
                       global_average_layer,
-                      addl_dense,
+                      #addl_dense,
                       prediction_layer
             ])
         model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
