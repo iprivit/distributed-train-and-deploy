@@ -11,14 +11,14 @@ def model(x_train, y_train, x_test, y_test,  epochs=8, batch_size=512, base_lear
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=None, alpha=1.0, include_top=False, weights='imagenet', input_tensor=None, pooling=None, classes=1000)
-        base_model.trainable = True
+        base_model.trainable = False
         global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
-        addl_dense = tf.keras.layers.Dense(1024,activation='relu')
+        #addl_dense = tf.keras.layers.Dense(256,activation='relu')
         prediction_layer = tf.keras.layers.Dense(257, activation='softmax')
         model = tf.keras.Sequential([
                       base_model,
                       global_average_layer,
-                      addl_dense,
+                      #addl_dense,
                       prediction_layer
             ])
         model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
