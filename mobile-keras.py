@@ -6,15 +6,15 @@ import subprocess
 import numpy as np
 
 
-def model(x_train, y_train, x_test, y_test,  epochs=8, batch_size=512, base_learning_rate=0.0002):
+def model(x_train, y_train, x_test, y_test,  epochs=8, batch_size=512, base_learning_rate=0.0002, target_shape=20):
     # the following line allows us to train with multiple GPUs using data parallelism
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
-        base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=None, alpha=1.0, include_top=False, weights='imagenet', input_tensor=None, pooling=None, classes=1000)
-        base_model.trainable = False
+        base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=None, include_top=False, weights='imagenet', input_tensor=None, pooling=None, classes=1000) # mobilenet_v2.MobileNetV2
+        base_model.trainable = True
         global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
         #addl_dense = tf.keras.layers.Dense(256,activation='relu')
-        prediction_layer = tf.keras.layers.Dense(257, activation='softmax')
+        prediction_layer = tf.keras.layers.Dense(target_shape, activation='softmax')
         model = tf.keras.Sequential([
                       base_model,
                       global_average_layer,
@@ -60,6 +60,7 @@ def _parse_args():
     parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAINING'))
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ.get('SM_HOSTS')))
     parser.add_argument('--current-host', type=str, default=os.environ.get('SM_CURRENT_HOST'))
+    parser.add_argument('--target-shape', type=int, default=20)
 
     return parser.parse_known_args()
 
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     eval_data, eval_labels = _load_testing_data(args.train)
     
     mobile_classifier = model(train_data,train_labels,eval_data,eval_labels, epochs=args.epochs, batch_size=args.batch_size,
-                             base_learning_rate=args.lr)
+                             base_learning_rate=args.lr, target_shape=args.target_shape)
 
     if args.current_host == args.hosts[0]:
         # save model to an S3 directory with version number '00000001'
